@@ -17,7 +17,7 @@ resource "aws_subnet" "ecs_vpc_subnets" {
   count = local.desired_subnets
 
   vpc_id = aws_vpc.ecs_vpc.id
-  cidr_block = "${local.cidr}.${count.index}.0/24"
+  cidr_block = "${local.cidr}.${count.index + 1}.0/24"
   map_public_ip_on_launch = true
   availability_zone = data.aws_availability_zones.ecs_vpc_azs.names[count.index]
 }
@@ -36,22 +36,30 @@ resource "aws_default_route_table" "example" {
 }
 
 # Security Group
-resource "aws_security_group" "ecs_security_groups" {
-  for_each = var.image.ports
-  name = "${each.key}_security_group"
+resource "aws_security_group" "ecs_security_group" {
+  name = "${var.service_name}_security_group"
   vpc_id = aws_vpc.ecs_vpc.id
 
-  ingress {
-    from_port        = each.value.from
-    to_port 	     = each.value.to
-    protocol	     = each.value.protocol
-    cidr_blocks	     = [aws_vpc.ecs_vpc.cidr_block]
-  }
-
+  # Allow all outgoing traffic.
   egress {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Allow all incoming traffic.
+resource "aws_vpc_security_group_ingress_rule" "ecs_security_group_ingress" {
+  security_group_id = aws_security_group.ecs_security_group.id
+
+  for_each = var.image.ports
+  cidr_ipv4   = "0.0.0.0/0" # Welcome to the internet. Have a look around.
+  from_port   = each.value.from
+  ip_protocol = each.value.protocol
+  to_port     = each.value.to
 }

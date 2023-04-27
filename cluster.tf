@@ -73,7 +73,7 @@ resource "aws_ecs_service" "ecs_service" {
 
   network_configuration {
     assign_public_ip = true
-    security_groups = [ for k, v in aws_security_group.ecs_security_groups : v.id ]
+    security_groups = [ aws_security_group.ecs_security_group.id ]
     subnets = [ for k, v in aws_subnet.ecs_vpc_subnets : v.id ]
   }
 }
