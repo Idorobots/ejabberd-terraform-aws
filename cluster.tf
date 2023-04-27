@@ -1,8 +1,15 @@
 locals {
+  # Cluster
   capacity_provider = "FARGATE"
+
+  # Service
   desired_tasks = 1
   max_percent = 200
   min_healthy_percent = 0 # No autoscaling
+
+  # Task
+  cpu = "256"
+  mem = "512"
 }
 
 # VPC & subnets
@@ -40,7 +47,45 @@ resource "aws_security_group" "ecs_security_group" {
   }
 }
 
+# ECS Task definition
+resource "aws_ecs_task_definition" "ecs_task_definition" {
+  family = "${var.service_name}-task-definition"
+  requires_compatibilities = [local.capacity_provider]
+
+  cpu = local.cpu
+  memory = local.mem
+  network_mode = "awsvpc"
+
+  container_definitions = jsonencode([{
+    name = "${var.service_name}-container"
+    image = "${var.image.url}:${var.image.tag}"
+    essential = true
+    portMappings = [ for k, v in var.image_ports : {
+      containerPort = v.to
+      hostPort = v.from
+    }]
+  }])
+}
+
 # ECS Cluster & Service
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.cluster_name
+}
+
+resource "aws_ecs_service" "ecs_service" {
+  name = var.service_name
+  cluster = aws_ecs_cluster.ecs_cluster.arn
+  launch_type = local.capacity_provider
+
+  deployment_maximum_percent = local.max_percent
+  deployment_minimum_healthy_percent = local.min_healthy_percent
+  desired_count = local.desired_tasks
+
+  task_definition = aws_ecs_task_definition.ecs_task_definition.arn
+
+  network_configuration {
+    assign_public_ip = true
+    security_groups = [ for k, v in aws_security_group.ecs_security_group : v.id ]
+    subnets = data.aws_subnets.ecs_vpc_subnets[*].id
+  }
 }
