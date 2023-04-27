@@ -1,5 +1,8 @@
 provider "aws" {
-  # NOTE Requires a profile configuration in .aws/config that'll be used for provisioning.
-  # NOTE You can put for instance a role with all the requisite permissions in there.
-  profile = "terraform"
+  region = "us-east-1"
+
+  # NOTE For limited access credentials you can either use:
+  # profile = "some-profile" # The profile as configured in .aws/config
+  # assume_role { ... }      # The raw role to use.
+  # NOTE In case you need MFA support, there's a separate aws-vault.
 }
