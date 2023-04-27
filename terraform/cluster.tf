@@ -45,11 +45,11 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
 
 # ECS Cluster & Service
 resource "aws_ecs_cluster" "ecs_cluster" {
-  name = var.cluster_name
+  name = var.cluster.name
 }
 
 resource "aws_ecs_cluster_capacity_providers" "ecs_cluster_capacity_provider" {
-  cluster_name = var.cluster_name
+  cluster_name = var.cluster.name
 
   capacity_providers = [local.capacity_provider]
 
@@ -61,9 +61,11 @@ resource "aws_ecs_cluster_capacity_providers" "ecs_cluster_capacity_provider" {
 }
 
 resource "aws_ecs_service" "ecs_service" {
-  name = var.service_name
+  name = var.service.name
   cluster = aws_ecs_cluster.ecs_cluster.arn
   launch_type = local.capacity_provider
+
+  enable_execute_command = var.service.ecsExec
 
   deployment_maximum_percent = local.max_percent
   deployment_minimum_healthy_percent = local.min_healthy_percent

@@ -1,11 +1,21 @@
-variable "cluster_name" {
-  type = string
-  default = "ejabberd-cluster"
+variable "cluster" {
+  type = object({
+    name = string
+  })
+  default = {
+    name = "ejabberd-cluster"
+  }
 }
 
-variable "service_name" {
-  type = string
-  default = "ejabberd-service"
+variable "service" {
+  type = object({
+    name = string
+    ecsExec = bool
+  })
+  default = {
+    name = "ejabberd-service"
+    ecsExec = true
+  }
 }
 
 variable task {

@@ -37,7 +37,7 @@ resource "aws_default_route_table" "example" {
 
 # Security Group
 resource "aws_security_group" "ecs_security_group" {
-  name = "${var.service_name}_security_group"
+  name = "${var.service.name}_security_group"
   vpc_id = aws_vpc.ecs_vpc.id
 
   # Allow all outgoing traffic.
