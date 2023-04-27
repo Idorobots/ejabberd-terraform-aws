@@ -91,6 +91,18 @@ resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.cluster_name
 }
 
+resource "aws_ecs_cluster_capacity_providers" "ecs_cluster_capacity_provider" {
+  cluster_name = var.cluster_name
+
+  capacity_providers = [local.capacity_provider]
+
+  default_capacity_provider_strategy {
+    base = 1
+    weight = 100
+    capacity_provider = local.capacity_provider
+  }
+}
+
 resource "aws_ecs_service" "ecs_service" {
   name = var.service_name
   cluster = aws_ecs_cluster.ecs_cluster.arn
