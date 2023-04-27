@@ -8,6 +8,20 @@ variable "service_name" {
   default = "ejabberd-service"
 }
 
+variable task {
+  type = object({
+    name = string
+    roleName = string
+    executionRoleName = string
+  })
+
+  default = {
+    name = "ejabberd"
+    roleName = "ecsTaskRole"
+    executionRoleName = "ecsTaskExecutionRole"
+  }
+}
+
 variable "image" {
   type = object({
     url = string

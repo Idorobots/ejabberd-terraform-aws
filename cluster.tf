@@ -48,16 +48,27 @@ resource "aws_security_group" "ecs_security_group" {
 }
 
 # ECS Task definition
+data "aws_iam_role" "ecs_task_role" {
+  name = var.task.roleName
+}
+
+data "aws_iam_role" "ecs_task_execution_role" {
+  name = var.task.executionRoleName
+}
+
 resource "aws_ecs_task_definition" "ecs_task_definition" {
-  family = "${var.service_name}-task-definition"
+  family = "${var.task.name}-task-definition"
   requires_compatibilities = [local.capacity_provider]
+
+  task_role_arn = data.aws_iam_role.ecs_task_role.arn
+  execution_role_arn = data.aws_iam_role.ecs_task_execution_role.arn
 
   cpu = local.cpu
   memory = local.mem
   network_mode = "awsvpc"
 
   container_definitions = jsonencode([{
-    name = "${var.service_name}-container"
+    name = "${var.task.name}"
     image = "${var.image.url}:${var.image.tag}"
     essential = true
     portMappings = [ for k, v in var.image.ports : {
