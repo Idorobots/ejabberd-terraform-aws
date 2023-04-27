@@ -26,7 +26,7 @@ data "aws_subnets" "ecs_vpc_subnets" {
 
 # Security Group
 resource "aws_security_group" "ecs_security_group" {
-  for_each = var.image_ports
+  for_each = var.image.ports
   name = "${each.key}_security_group"
   vpc_id = aws_vpc.ecs_vpc.id
 
@@ -60,7 +60,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
     name = "${var.service_name}-container"
     image = "${var.image.url}:${var.image.tag}"
     essential = true
-    portMappings = [ for k, v in var.image_ports : {
+    portMappings = [ for k, v in var.image.ports : {
       containerPort = v.to
       hostPort = v.from
     }]
